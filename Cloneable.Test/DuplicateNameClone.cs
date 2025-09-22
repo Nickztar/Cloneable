@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Clonable.Test.A1
+namespace Cloneable.Test.A1
 {
     [Cloneable]
     public partial class Clone2
@@ -14,7 +14,7 @@ namespace Clonable.Test.A1
     }
 }
 
-namespace Clonable.Test.A2
+namespace Cloneable.Test.A2
 {
     [Cloneable]
     public partial class Clone2

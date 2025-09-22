@@ -1,8 +1,9 @@
 using System;
+using Cloneable;
 
 namespace Cloneable.Sample
 {
-    [CloneableAttribute]
+    [Cloneable]
     public partial class SimpleClone
     {
         public string A { get; set; }
