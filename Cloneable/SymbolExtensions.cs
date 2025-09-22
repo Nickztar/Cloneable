@@ -1,8 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Text;
 
 namespace Cloneable
 {
@@ -14,7 +15,38 @@ namespace Cloneable
                 .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, attributeType));
             return attributes.Any();
         }
+        
+        public static bool TryGetAttribute(this ISymbol symbol, string attributeDisplayStr, out AttributeData? attributes)
+        {
+            attributes = symbol.GetAttributes()
+                .FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == attributeDisplayStr);
+            return attributes is not null;
+        }
+        
+        public static T? RetrieveArgument<T>(this AttributeData? attribute, string namedArgument)
+        {
+            return !attribute.TryGetArgument<T>(namedArgument, out var result) ? default : result;
+        }
+        
+        public static bool TryGetArgument<T>(this AttributeData? attribute, string namedArgument, out T? value)
+        {
+            if (attribute?.NamedArguments.FirstOrDefault(x => x.Key == namedArgument).Value is not T typedArgument)
+            {
+                value = default;
+                return false;
+            }
 
+            value = typedArgument;
+            return true;
+        }
+        
+        public static bool TryGetArgument<T>(this ISymbol symbol, string attributeDisplayStr, string namedArgument, out T? value)
+        {
+            var attribute = symbol
+                .GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == attributeDisplayStr);
+            return TryGetArgument(attribute, namedArgument, out value);
+        }
+        
         public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attributeType)
         {
             return symbol.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, attributeType));
@@ -69,6 +101,43 @@ namespace Cloneable
         public static bool IsPossibleEnumerable(this ITypeSymbol symbol)
         {
             return !symbol.IsValueType && symbol.Name != "String" && (symbol.GetIEnumerableTypeArguments() != null || symbol.GetIDictionaryTypeArguments() != null);
+        }
+        
+        
+        public static StringBuilder AppendCode(this StringBuilder builder, string value, ushort indent = 0)
+        {
+            for (var i = 0; i < indent; i++)
+            {
+                builder.Append("    ");
+            }
+
+            return builder.AppendLine(value);
+        }
+        
+        public static StringBuilder AppendCodeBlock(this StringBuilder builder, string value, ushort indent = 0)
+        {
+            if (string.IsNullOrEmpty(value))
+                return builder;
+
+            // Normalize all line endings to '\n' first so splitting is stable
+            var normalized = value.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            foreach (var line in normalized.Split('\n'))
+            {
+                builder.AppendCode(line, indent);
+            }
+
+            return builder;
+        }
+        
+        public static string ToCapitalized(this string str)
+        {
+            return char.ToUpper(str[0]) + str.Substring(1, str.Length - 1);
+        }
+        
+        public static IEnumerable<T> DistinctBy<T, TKey>(this IEnumerable<T> list, Func<T, TKey> propertySelector)
+        {
+            return list.GroupBy(propertySelector).Select(x => x.First());
         }
     }
 }

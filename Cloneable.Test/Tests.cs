@@ -3,7 +3,7 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 
-namespace Clonable.Test
+namespace Cloneable.Test
 {
     public class Tests
     {
@@ -309,5 +309,18 @@ namespace Clonable.Test
             deepClone.CloneSafe();
         }
 
+
+        [Fact]
+        public void DoesntThrowOnNestedNullable()
+        {
+            var deepClone = new DeepCloneNestedNullable()
+            {
+                A = "test",
+                Simple = [null]
+            };
+
+            deepClone.Clone();
+            deepClone.CloneSafe();
+        }
     }
 }

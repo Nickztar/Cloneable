@@ -17,4 +17,11 @@ namespace Cloneable.Sample
                 $"\tSimple.B:\t{Simple?.B}";
         }
     }
+    
+    [Cloneable]
+    public partial class DeepCloneNestedNullable
+    {
+        public string A { get; set; }
+        public SimpleClone?[] Simple { get; set; }
+    }
 }
