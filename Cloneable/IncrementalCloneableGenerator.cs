@@ -254,7 +254,6 @@ public class IncrementalCloneableGenerator : IIncrementalGenerator
         source.AppendCodeBlock($"""
         /// <summary>
         /// Creates a copy of {clonable.Name} with NO circular reference checking. This method should be used if performance matters.
-        /// 
         /// <exception cref="StackOverflowException">Will occur on any object that has circular references in the hierarchy.</exception>
         /// </summary>
         """, 1);

@@ -7,13 +7,8 @@ namespace Cloneable.Snapshots.Playground;
 public partial class SimpleClone
 {
     /// <summary>
-
     /// Creates a copy of SimpleClone with NO circular reference checking. This method should be used if performance matters.
-
-    /// 
-
     /// <exception cref="StackOverflowException">Will occur on any object that has circular references in the hierarchy.</exception>
-
     /// </summary>
     public global::Cloneable.Snapshots.Playground.SimpleClone Clone()
     {
@@ -23,11 +18,8 @@ public partial class SimpleClone
         };
     }
     /// <summary>
-
     /// Creates a copy of SimpleClone with circular reference checking. If a circular reference was detected, only a reference of the leaf object is passed instead of cloning it.
-
     /// </summary>
-
     /// <param name="referenceChain">Should only be provided if specific objects should not be cloned but passed by reference instead.</param>
     public global::Cloneable.Snapshots.Playground.SimpleClone CloneSafe(global::System.Collections.Generic.Stack<object> referenceChain = null)
     {

@@ -116,10 +116,17 @@ namespace Cloneable
         
         public static StringBuilder AppendCodeBlock(this StringBuilder builder, string value, ushort indent = 0)
         {
-            foreach (var line in value.Split('\n'))
+            if (string.IsNullOrEmpty(value))
+                return builder;
+
+            // Normalize all line endings to '\n' first so splitting is stable
+            var normalized = value.Replace("\r\n", "\n").Replace("\r", "\n");
+
+            foreach (var line in normalized.Split('\n'))
             {
                 builder.AppendCode(line, indent);
             }
+
             return builder;
         }
         
