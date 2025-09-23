@@ -23,5 +23,8 @@ namespace Cloneable.Sample
     {
         public string A { get; set; }
         public SimpleClone?[] Simple { get; set; }
+        public List<SimpleClone>? Simple2 { get; set; }
+        public SimpleClone[]? Simple3 { get; set; }
+        public List<SimpleClone?> Simple4 { get; set; }
     }
 }

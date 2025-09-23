@@ -316,7 +316,10 @@ namespace Cloneable.Test
             var deepClone = new DeepCloneNestedNullable()
             {
                 A = "test",
-                Simple = [null]
+                Simple = [null],
+                Simple3 = null,
+                Simple2 = null,
+                Simple4 = [null]
             };
 
             deepClone.Clone();

@@ -172,18 +172,19 @@ public class IncrementalCloneableGenerator : IIncrementalGenerator
     )
     {
         var newAccessor = previousAccessor + "x";
+        var isNullable = type.NullableAnnotation is NullableAnnotation.Annotated;
+        var nullablePrevious = isNullable ? $"{previousAccessor}?" : previousAccessor;
         if (!type.IsPossibleEnumerable())
         {
             // Check if this type is supposed to be "Cloneable"
             var isDeepClonable = type.TryGetAttribute(ClonableAttribute, out var attribute) && attribute.RetrieveArgument<bool?>(PreventDeepCopyKeyString) is null or true;
-            var isNullable = type.NullableAnnotation is NullableAnnotation.Annotated;
-            return isDeepClonable ? $"{previousAccessor}{(isNullable ? "?" : "")}.#CLONE#" : previousAccessor;
+            return isDeepClonable ? $"{nullablePrevious}.#CLONE#" : previousAccessor;
         }
         var arguments = type.GetIDictionaryTypeArguments() ?? type.GetIEnumerableTypeArguments() ?? [];
         if (!arguments.Any()) return previousAccessor; // Not much to do
         if (type is IArrayTypeSymbol)
         {
-            return $"{previousAccessor}.Select({newAccessor} => {BuildEnumerableAccessor(newAccessor, arguments[0])}).ToArray()";
+            return $"{nullablePrevious}.Select({newAccessor} => {BuildEnumerableAccessor(newAccessor, arguments[0])}).ToArray()";
         }
         var typeAsEnumerable = $"global::System.Collections.Generic.IEnumerable<{arguments.ElementAtOrDefault(0)?.ToFQF()}>";
         var argumentsAsKeyValuePair = $"global::System.Collections.Generic.KeyValuePair<{arguments.ElementAtOrDefault(0)?.ToFQF()}, {arguments.ElementAtOrDefault(1)?.ToFQF()}>";
@@ -197,41 +198,43 @@ public class IncrementalCloneableGenerator : IIncrementalGenerator
         var isConstructableWithKeyValuePair = ((INamedTypeSymbol)type).Constructors.Any(constructors =>
             constructors.Parameters.Any(param => param.Type.ToFQF() == typeAsKeyValuePair)
         );
+        var nullableCheck = isNullable ? $"{previousAccessor} is null ? null : " : "";
+        var nullableFQF = type.ToNullableFQF().TrimEnd('?'); // Since we null check, we are fine not actually caring
         if (arguments.Any(x => !x.IsValueType))
         {
             //Note: Should support "most" of the commonly used collections https://learn.microsoft.com/en-us/dotnet/standard/collections/commonly-used-collection-types
             //Does not really support: Hashtable (Depricated), ArrayList (Depricated), SortedList (Does currently only support value types. 
             if (isConstructableWithEnumerable)
             {
-                return $"new {type.ToNullableFQF()}({previousAccessor}.Select({newAccessor} => {BuildEnumerableAccessor(newAccessor, arguments[0])}))";
+                return nullableCheck + $"new {nullableFQF}({previousAccessor}.Select({newAccessor} => {BuildEnumerableAccessor(newAccessor, arguments[0])}))";
             }
 
             if (isConstructableWithKeyValuePair)
             {
-                return $"new {type.ToNullableFQF()}({previousAccessor}.Select({newAccessor} => new {argumentsAsKeyValuePair}({BuildEnumerableAccessor($"{newAccessor}.Key", arguments[0])}, {BuildEnumerableAccessor($"{newAccessor}.Value", arguments[1])})))";
+                return nullableCheck + $"new {nullableFQF}({previousAccessor}.Select({newAccessor} => new {argumentsAsKeyValuePair}({BuildEnumerableAccessor($"{newAccessor}.Key", arguments[0])}, {BuildEnumerableAccessor($"{newAccessor}.Value", arguments[1])})))";
             }
 
             if (type.ToFQF() == typeAsEnumerable)
             {
-                return $"{previousAccessor}.Select({newAccessor} => {BuildEnumerableAccessor(newAccessor, arguments[0])})";
+                return nullableCheck + $"{previousAccessor}.Select({newAccessor} => {BuildEnumerableAccessor(newAccessor, arguments[0])})";
             }
             return previousAccessor;
         }
         if (isConstructableWithSelf)
         {
-            return $"new {type.ToNullableFQF()}({previousAccessor})";
+            return nullableCheck + $"new {nullableFQF}({previousAccessor})";
         }
         if (isConstructableWithEnumerable)
         {
-            return $"new {type.ToNullableFQF()}({previousAccessor}.Select({newAccessor} => {newAccessor}))";
+            return nullableCheck + $"new {nullableFQF}({previousAccessor}.Select({newAccessor} => {newAccessor}))";
         }
         if (isConstructableWithKeyValuePair)
         {
-            return $"new {type.ToNullableFQF()}({previousAccessor}.Select({newAccessor} => new {argumentsAsKeyValuePair}({newAccessor}.Key, {newAccessor}.Value)))";
+            return nullableCheck + $"new {nullableFQF}({previousAccessor}.Select({newAccessor} => new {argumentsAsKeyValuePair}({newAccessor}.Key, {newAccessor}.Value)))";
         }
         if (type.ToFQF() == typeAsEnumerable)
         {
-            return $"{previousAccessor}.Select({newAccessor} => {newAccessor})";
+            return nullableCheck + $"{previousAccessor}.Select({newAccessor} => {newAccessor})";
         }
         return previousAccessor;
     }
@@ -241,6 +244,7 @@ public class IncrementalCloneableGenerator : IIncrementalGenerator
         // Begin building the generated source
         var source = new StringBuilder($$"""
                                          // <auto-generated/>
+                                         #nullable enable
                                          using System;
                                          using System.Linq;
                                          
@@ -285,7 +289,7 @@ public class IncrementalCloneableGenerator : IIncrementalGenerator
         /// </summary>
         /// <param name="referenceChain">Should only be provided if specific objects should not be cloned but passed by reference instead.</param>
         """, 1);
-        source.AppendCode($"public {clonable.FQF} CloneSafe(global::System.Collections.Generic.Stack<object> referenceChain = null)", 1);
+        source.AppendCode($"public {clonable.FQF} CloneSafe(global::System.Collections.Generic.Stack<object>? referenceChain = null)", 1);
         source.AppendCode("{", 1);
         source.AppendCode("if (referenceChain?.Contains(this) == true) return this;", 2);
         source.AppendCode("referenceChain ??= new global::System.Collections.Generic.Stack<object>();", 2);
