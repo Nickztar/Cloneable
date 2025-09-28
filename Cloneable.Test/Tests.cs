@@ -3,327 +3,326 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 
-namespace Cloneable.Test
+namespace Cloneable.Test;
+
+public class Tests
 {
-    public class Tests
+    [Fact]
+    public void DoSimpleClone()
     {
-        [Fact]
-        public void DoSimpleClone()
+        // Uses the Clone method on a class with no circular references
+        var obj = new SimpleClone()
         {
-            // Uses the Clone method on a class with no circular references
+            A = "salam",
+            B = 100
+        };
+        var clone = obj.Clone();
+        clone.Should().NotBe(obj);
+    }
+
+    [Fact]
+    public void DoSimpleExplicitClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var obj = new SimpleCloneExplicit()
+        {
+            A = "salam",
+            B = 100
+        };
+        var clone = obj.Clone();
+        clone.Should().NotBe(obj);
+    }
+
+    [Fact]
+    public void DoDeepClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var obj = new SimpleClone()
+        {
+            A = "salam",
+            B = 100
+        };
+        var deep = new DeepClone()
+        {
+            A = "first",
+            Simple = obj
+        };
+        var clone = deep.Clone();
+        clone.Should().NotBe(deep);
+    }
+
+    [Fact]
+    public void DoSafeDeepClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var child = new SafeDeepCloneChild()
+        {
+            A = "child"
+        };
+        var parent = new SafeDeepClone()
+        {
+            A = "parent",
+            Child = child
+        };
+        child.Parent = parent;
+        var clone = parent.CloneSafe();
+        clone.Should().NotBe(parent);
+        clone.Child.Should().NotBe(parent.Child);
+    }
+
+    [Fact]
+    public void DoSimpleListClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
+        var listClone = new ListClone()
+        {
+            A = "child",
+            B = list
+        };
+        var clone = listClone.CloneSafe();
+        clone.Should().NotBe(listClone);
+        var listEqual = clone.B == listClone.B;
+        listEqual.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DoNestedSimpleListClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
+        var listClone = new NestedListClone()
+        {
+            A = "child",
+            B = new List<List<int>>() { list }
+        };
+        var clone = listClone.CloneSafe();
+        clone.Should().NotBe(listClone);
+        var listEqual = clone.B == listClone.B;
+        listEqual.Should().BeFalse();
+        var nestedListEqual = clone.B[0] == listClone.B[0];
+        nestedListEqual.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DoNestedDeepListClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<SimpleClone>();
+        for (int x = 0; x < 5; x++)
+        {
             var obj = new SimpleClone()
             {
                 A = "salam",
-                B = 100
+                B = Random.Shared.Next()
             };
-            var clone = obj.Clone();
-            clone.Should().NotBe(obj);
+            list.Add(obj);
         }
-
-        [Fact]
-        public void DoSimpleExplicitClone()
+        var listClone = new NestedDeepListClone()
         {
-            // Uses the Clone method on a class with no circular references
-            var obj = new SimpleCloneExplicit()
-            {
-                A = "salam",
-                B = 100
-            };
-            var clone = obj.Clone();
-            clone.Should().NotBe(obj);
-        }
+            A = "child",
+            B = new List<List<SimpleClone>>() { list }
+        };
+        var clone = listClone.CloneSafe();
+        clone.Should().NotBe(listClone);
+        var listEqual = clone.B == listClone.B;
+        listEqual.Should().BeFalse();
+        var nestedListEqual = clone.B[0] == listClone.B[0];
+        nestedListEqual.Should().BeFalse();
+    }
 
-        [Fact]
-        public void DoDeepClone()
+    [Fact]
+    public void DoSimpleDictionaryClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
+        var listClone = new DictionaryClone()
         {
-            // Uses the Clone method on a class with no circular references
+            A = "child",
+            B = list.ToDictionary(x => x)
+        };
+        var clone = listClone.CloneSafe();
+        clone.Should().NotBe(listClone);
+        var listEqual = clone.B == listClone.B;
+        listEqual.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DoDeepListClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<SimpleClone>();
+        for (int x = 0; x < 5; x++)
+        {
             var obj = new SimpleClone()
             {
                 A = "salam",
-                B = 100
+                B = Random.Shared.Next()
             };
-            var deep = new DeepClone()
-            {
-                A = "first",
-                Simple = obj
-            };
-            var clone = deep.Clone();
-            clone.Should().NotBe(deep);
+            list.Add(obj);
         }
-
-        [Fact]
-        public void DoSafeDeepClone()
+        var listClone = new DeepListClone()
         {
-            // Uses the Clone method on a class with no circular references
-            var child = new SafeDeepCloneChild()
-            {
-                A = "child"
-            };
-            var parent = new SafeDeepClone()
-            {
-                A = "parent",
-                Child = child
-            };
-            child.Parent = parent;
-            var clone = parent.CloneSafe();
-            clone.Should().NotBe(parent);
-            clone.Child.Should().NotBe(parent.Child);
-        }
+            A = "child",
+            B = list
+        };
+        var clone = listClone.CloneSafe();
 
-        [Fact]
-        public void DoSimpleListClone()
+        clone.B.Should().NotBeEquivalentTo(listClone.B);
+        clone.Should().NotBe(listClone);
+        var listEqual = clone.B == listClone.B;
+        listEqual.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DoDeepDictionaryClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<SimpleClone>();
+        for (int x = 0; x < 5; x++)
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
-            var listClone = new ListClone()
+            var obj = new SimpleClone()
             {
-                A = "child",
-                B = list
+                A = "salam",
+                B = Random.Shared.Next()
             };
-            var clone = listClone.CloneSafe();
-            clone.Should().NotBe(listClone);
-            var listEqual = clone.B == listClone.B;
-            listEqual.Should().BeFalse();
+            list.Add(obj);
         }
-
-        [Fact]
-        public void DoNestedSimpleListClone()
+        var listClone = new DeepDictionaryClone()
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
-            var listClone = new NestedListClone()
-            {
-                A = "child",
-                B = new List<List<int>>() { list }
-            };
-            var clone = listClone.CloneSafe();
-            clone.Should().NotBe(listClone);
-            var listEqual = clone.B == listClone.B;
-            listEqual.Should().BeFalse();
-            var nestedListEqual = clone.B[0] == listClone.B[0];
-            nestedListEqual.Should().BeFalse();
-        }
+            A = "child",
+            B = list.ToDictionary(x => x.B)
+        };
+        var clone = listClone.CloneSafe();
 
-        [Fact]
-        public void DoNestedDeepListClone()
+        clone.B.Should().NotBeEquivalentTo(listClone.B);
+        clone.Should().NotBe(listClone);
+        var listEqual = clone.B == listClone.B;
+        listEqual.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DoSimpleEnumerableClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
+        var enumerableClone = new EnumerableClone()
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<SimpleClone>();
-            for (int x = 0; x < 5; x++)
-            {
-                var obj = new SimpleClone()
-                {
-                    A = "salam",
-                    B = Random.Shared.Next()
-                };
-                list.Add(obj);
-            }
-            var listClone = new NestedDeepListClone()
-            {
-                A = "child",
-                B = new List<List<SimpleClone>>() { list }
-            };
-            var clone = listClone.CloneSafe();
-            clone.Should().NotBe(listClone);
-            var listEqual = clone.B == listClone.B;
-            listEqual.Should().BeFalse();
-            var nestedListEqual = clone.B[0] == listClone.B[0];
-            nestedListEqual.Should().BeFalse();
-        }
+            A = "child",
+            B = list.ToArray()
+        };
+        var clone = enumerableClone.CloneSafe();
+        clone.Should().NotBe(enumerableClone);
+        var listEqual = clone.B == enumerableClone.B;
+        listEqual.Should().BeFalse();
+    }
 
-        [Fact]
-        public void DoSimpleDictionaryClone()
+    [Fact]
+    public void DoDeepEnumerableClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<SimpleClone>();
+        for (int x = 0; x < 5; x++)
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
-            var listClone = new DictionaryClone()
+            var obj = new SimpleClone()
             {
-                A = "child",
-                B = list.ToDictionary(x => x)
+                A = "salam",
+                B = Random.Shared.Next()
             };
-            var clone = listClone.CloneSafe();
-            clone.Should().NotBe(listClone);
-            var listEqual = clone.B == listClone.B;
-            listEqual.Should().BeFalse();
+            list.Add(obj);
         }
-
-        [Fact]
-        public void DoDeepListClone()
+        var enumerableClone = new DeepEnumerableClone()
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<SimpleClone>();
-            for (int x = 0; x < 5; x++)
-            {
-                var obj = new SimpleClone()
-                {
-                    A = "salam",
-                    B = Random.Shared.Next()
-                };
-                list.Add(obj);
-            }
-            var listClone = new DeepListClone()
-            {
-                A = "child",
-                B = list
-            };
-            var clone = listClone.CloneSafe();
+            A = "child",
+            B = list.ToArray()
+        };
+        var clone = enumerableClone.CloneSafe();
+        clone.Should().NotBe(enumerableClone);
+        var listEqual = clone.B == enumerableClone.B;
+        listEqual.Should().BeFalse();
+    }
 
-            clone.B.Should().NotBeEquivalentTo(listClone.B);
-            clone.Should().NotBe(listClone);
-            var listEqual = clone.B == listClone.B;
-            listEqual.Should().BeFalse();
-        }
-
-        [Fact]
-        public void DoDeepDictionaryClone()
+    [Fact]
+    public void DoSimpleArrayClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
+        var enumerableClone = new ArrayClone()
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<SimpleClone>();
-            for (int x = 0; x < 5; x++)
-            {
-                var obj = new SimpleClone()
-                {
-                    A = "salam",
-                    B = Random.Shared.Next()
-                };
-                list.Add(obj);
-            }
-            var listClone = new DeepDictionaryClone()
-            {
-                A = "child",
-                B = list.ToDictionary(x => x.B)
-            };
-            var clone = listClone.CloneSafe();
+            A = "child",
+            B = list.ToArray()
+        };
+        var clone = enumerableClone.CloneSafe();
+        clone.Should().NotBe(enumerableClone);
+        var listEqual = clone.B == enumerableClone.B;
+        listEqual.Should().BeFalse();
+    }
 
-            clone.B.Should().NotBeEquivalentTo(listClone.B);
-            clone.Should().NotBe(listClone);
-            var listEqual = clone.B == listClone.B;
-            listEqual.Should().BeFalse();
-        }
-
-        [Fact]
-        public void DoSimpleEnumerableClone()
+    [Fact]
+    public void DoDeepArrayClone()
+    {
+        // Uses the Clone method on a class with no circular references
+        var list = new List<SimpleClone>();
+        for (int x = 0; x < 5; x++)
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
-            var enumerableClone = new EnumerableClone()
+            var obj = new SimpleClone()
             {
-                A = "child",
-                B = list.ToArray()
+                A = "salam",
+                B = Random.Shared.Next()
             };
-            var clone = enumerableClone.CloneSafe();
-            clone.Should().NotBe(enumerableClone);
-            var listEqual = clone.B == enumerableClone.B;
-            listEqual.Should().BeFalse();
+            list.Add(obj);
         }
-
-        [Fact]
-        public void DoDeepEnumerableClone()
+        var enumerableClone = new DeepArrayClone()
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<SimpleClone>();
-            for (int x = 0; x < 5; x++)
-            {
-                var obj = new SimpleClone()
-                {
-                    A = "salam",
-                    B = Random.Shared.Next()
-                };
-                list.Add(obj);
-            }
-            var enumerableClone = new DeepEnumerableClone()
-            {
-                A = "child",
-                B = list.ToArray()
-            };
-            var clone = enumerableClone.CloneSafe();
-            clone.Should().NotBe(enumerableClone);
-            var listEqual = clone.B == enumerableClone.B;
-            listEqual.Should().BeFalse();
-        }
+            A = "child",
+            B = list.ToArray()
+        };
+        var clone = enumerableClone.CloneSafe();
+        clone.Should().NotBe(enumerableClone);
+        var listEqual = clone.B == enumerableClone.B;
+        listEqual.Should().BeFalse();
+    }
 
-        [Fact]
-        public void DoSimpleArrayClone()
+    [Fact]
+    public void ThrowsOnNonNullable()
+    {
+        var deepClone = new DeepClone()
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<int>() { 0, 1, 2, 3, 4, 5 };
-            var enumerableClone = new ArrayClone()
-            {
-                A = "child",
-                B = list.ToArray()
-            };
-            var clone = enumerableClone.CloneSafe();
-            clone.Should().NotBe(enumerableClone);
-            var listEqual = clone.B == enumerableClone.B;
-            listEqual.Should().BeFalse();
-        }
+            A = "test",
+            Simple = null
+        };
 
-        [Fact]
-        public void DoDeepArrayClone()
+        Assert.Throws<NullReferenceException>(deepClone.Clone);
+        Assert.Throws<NullReferenceException>(() => deepClone.CloneSafe());
+    }
+
+    [Fact]
+    public void DoesntThrowOnNullable()
+    {
+        var deepClone = new DeepCloneNullable()
         {
-            // Uses the Clone method on a class with no circular references
-            var list = new List<SimpleClone>();
-            for (int x = 0; x < 5; x++)
-            {
-                var obj = new SimpleClone()
-                {
-                    A = "salam",
-                    B = Random.Shared.Next()
-                };
-                list.Add(obj);
-            }
-            var enumerableClone = new DeepArrayClone()
-            {
-                A = "child",
-                B = list.ToArray()
-            };
-            var clone = enumerableClone.CloneSafe();
-            clone.Should().NotBe(enumerableClone);
-            var listEqual = clone.B == enumerableClone.B;
-            listEqual.Should().BeFalse();
-        }
+            A = "test",
+            Simple = null
+        };
 
-        [Fact]
-        public void ThrowsOnNonNullable()
+        deepClone.Clone();
+        deepClone.CloneSafe();
+    }
+
+
+    [Fact]
+    public void DoesntThrowOnNestedNullable()
+    {
+        var deepClone = new DeepCloneNestedNullable()
         {
-            var deepClone = new DeepClone()
-            {
-                A = "test",
-                Simple = null
-            };
+            A = "test",
+            Simple = [null],
+            Simple3 = null,
+            Simple2 = null,
+            Simple4 = [null]
+        };
 
-            Assert.Throws<NullReferenceException>(deepClone.Clone);
-            Assert.Throws<NullReferenceException>(() => deepClone.CloneSafe());
-        }
-
-        [Fact]
-        public void DoesntThrowOnNullable()
-        {
-            var deepClone = new DeepCloneNullable()
-            {
-                A = "test",
-                Simple = null
-            };
-
-            deepClone.Clone();
-            deepClone.CloneSafe();
-        }
-
-
-        [Fact]
-        public void DoesntThrowOnNestedNullable()
-        {
-            var deepClone = new DeepCloneNestedNullable()
-            {
-                A = "test",
-                Simple = [null],
-                Simple3 = null,
-                Simple2 = null,
-                Simple4 = [null]
-            };
-
-            deepClone.Clone();
-            deepClone.CloneSafe();
-        }
+        deepClone.Clone();
+        deepClone.CloneSafe();
     }
 }
