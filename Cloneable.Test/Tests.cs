@@ -1,7 +1,5 @@
 ﻿using Cloneable.Sample;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
 
 namespace Cloneable.Test;
 

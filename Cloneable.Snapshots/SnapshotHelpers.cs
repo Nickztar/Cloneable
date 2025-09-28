@@ -1,5 +1,4 @@
-﻿using Cloneable;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Cloneable.Snapshots;

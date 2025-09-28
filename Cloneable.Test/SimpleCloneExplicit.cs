@@ -1,5 +1,3 @@
-using System;
-
 namespace Cloneable.Sample;
 
 [Cloneable(ExplicitDeclaration = true)]
