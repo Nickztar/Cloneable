@@ -323,4 +323,37 @@ public class Tests
         deepClone.Clone();
         deepClone.CloneSafe();
     }
+    
+    [Fact]
+    public void CanCloneWithInheritedProperties()
+    {
+        var inherited = new InheritedDeepClone()
+        {
+            A = "test",
+            Simple = new InheritedSimpleClone()
+            {
+                A = "12",
+                B = 123,
+                Id = 12313
+            },
+            Other = 4321
+        };
+
+        var cloned = inherited.Clone();
+        var clonedSafe = inherited.CloneSafe();
+        
+        cloned.A.Should().Be(inherited.A);
+        cloned.Simple.A.Should().Be(inherited.Simple.A);
+        // Ignored property:
+        // cloned.Simple.B.Should().Be(inherited.Simple.B);
+        cloned.Simple.Id.Should().Be(inherited.Simple.Id);
+        cloned.Other.Should().Be(inherited.Other);
+        
+        clonedSafe.A.Should().Be(inherited.A);
+        clonedSafe.Simple.A.Should().Be(inherited.Simple.A);
+        // Ignored property:
+        // clonedSafe.Simple.B.Should().Be(inherited.Simple.B);
+        clonedSafe.Simple.Id.Should().Be(inherited.Simple.Id);
+        clonedSafe.Other.Should().Be(inherited.Other);
+    }
 }

@@ -9,6 +9,23 @@ namespace Cloneable;
 
 internal static class SymbolExtensions
 {
+    public static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(this ITypeSymbol type)
+    {
+        var current = type;
+        while (current != null)
+        {
+            yield return current;
+            current = current.BaseType;
+        }
+    }
+    
+    public static IEnumerable<ISymbol> GetAllMembers(this INamespaceOrTypeSymbol symbol)
+    {
+        if (symbol is ITypeSymbol typeSymbol)
+            return typeSymbol.GetBaseTypesAndThis().SelectMany(x => x.GetMembers());
+        return symbol.GetMembers();
+    }
+    
     public static bool TryGetAttribute(this ISymbol symbol, INamedTypeSymbol attributeType, out IEnumerable<AttributeData> attributes)
     {
         attributes = symbol.GetAttributes()

@@ -124,7 +124,7 @@ public class IncrementalCloneableGenerator : IIncrementalGenerator
     
     private static IEnumerable<ClonableMember> GetMembers(INamedTypeSymbol symbol, bool requireExplicit)
     {
-        foreach (var member in symbol.GetMembers())
+        foreach (var member in symbol.GetAllMembers())
         {
             if (
                 member is not IPropertySymbol { IsReadOnly: false }
